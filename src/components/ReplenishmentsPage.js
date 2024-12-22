@@ -18,9 +18,9 @@ import {
 } from "@mui/material";
 import TopUpWalletPage from "./TopUpWalletPage"; // Подключаем страницу пополнения
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
 import axios from "axios";
 
+// Модальные стили
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -46,6 +46,7 @@ const ReplenishmentsPage = () => {
     severity: "success",
   });
 
+  // Поиск клиента и транзакций
   const handleSearch = async () => {
     try {
       const [surname, name, middle_name] = searchInput.split(" ");
@@ -80,37 +81,120 @@ const ReplenishmentsPage = () => {
     }
   };
 
+  // Генерация PDF отчета
   const generatePDF = () => {
-    const doc = new jsPDF();
-    
-    // Добавляем заголовок
-    doc.setFontSize(16);
-    doc.setFont("Roboto", "normal");
-    doc.text(`${userData.surname} ${userData.name} ${userData.middle_name}`, 10, 10);
-    doc.text(`Кошелёк: ${userData.wallet}`, 10, 20);
-    
-    console.log('VERA ur userData is', userData)
-    console.log(userData.name)
-    console.log(transactions)
-    
-    // Добавляем таблицу
-    const tableColumns = ["Дата", "Сумма", "Банк", "Подтверждено"];
-    const tableRows = transactions.map((transaction) => [
-      new Date(transaction.date).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" }),
-      transaction.amount,
-      transaction.bankName,
-      transaction.approved ? "Да" : "Нет",
-    ]);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-    doc.autoTable({
-      head: [tableColumns],
-      body: tableRows,
-      startY: 30,
+    // Размеры страницы A4
+    const pageWidth = 595.28; // A4 ширина
+    const pageHeight = 841.89; // A4 высота
+    canvas.width = pageWidth * 2; // High resolution
+    canvas.height = pageHeight * 2; // High resolution
+    ctx.scale(2, 2); // Scale for high resolution
+
+    // Настройка стилей для текста
+    ctx.fillStyle = "#000";
+    ctx.font = "16px Arial";
+
+    // Оформление ФИО и номера кошелька
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(
+      `ФИО: ${userData.surname} ${userData.name} ${userData.middle_name}`,
+      20,
+      40
+    );
+    ctx.font = "16px Arial";
+    ctx.fillText(`Кошелёк: ${userData.wallet}`, 20, 70);
+
+    // Отрисовка таблицы
+    let startY = 100;
+
+    // Задаем ширину колонок и позиции
+    const tableWidth = 550; // Общая ширина таблицы
+    const columnWidths = [150, 100, 150, 150]; // Ширина колонок
+    const columnPositions = [20]; // Начальная позиция колонок
+
+    // Вычисляем позиции каждой колонки
+    for (let i = 0; i < columnWidths.length; i++) {
+      columnPositions.push(columnPositions[i] + columnWidths[i]);
+    }
+
+    const rowHeight = 30; // Высота строки
+
+    // Рисуем заголовок таблицы
+    ctx.fillStyle = "#e0e0e0"; // Светло-серый фон для заголовка
+    ctx.fillRect(columnPositions[0], startY, tableWidth, rowHeight);
+
+    // Отрисовка текста заголовка
+    ctx.fillStyle = "#000"; // Черный текст
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Дата", columnPositions[0] + 10, startY + 20);
+    ctx.fillText("Сумма", columnPositions[1] + 10, startY + 20);
+    ctx.fillText("Банк", columnPositions[2] + 10, startY + 20);
+    ctx.fillText("Подтверждено", columnPositions[3] + 10, startY + 20);
+
+    // Рисуем границы для заголовка
+    ctx.strokeStyle = "#000"; // Черный цвет границ
+    ctx.lineWidth = 1;
+    columnPositions.forEach((pos, index) => {
+      if (index < columnPositions.length - 1) {
+        ctx.strokeRect(
+          pos,
+          startY,
+          columnWidths[index],
+          rowHeight
+        );
+      }
     });
 
-    // Сохраняем PDF
-    doc.save(`${userData.surname}_${userData.name}.pdf`);
+    // Рисуем строки с данными
+    transactions.forEach((transaction, index) => {
+      startY += rowHeight;
+
+      // Отрисовка текста для каждой строки
+      ctx.fillStyle = "#000";
+      ctx.fillText(
+        new Date(transaction.date).toLocaleString("ru-RU", {
+          timeZone: "Europe/Moscow",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+        columnPositions[0] + 10,
+        startY + 20
+      );
+      ctx.fillText(transaction.amount.toString(), columnPositions[1] + 10, startY + 20);
+      ctx.fillText(transaction.bankName || "—", columnPositions[2] + 10, startY + 20);
+      ctx.fillText(transaction.approved ? "Да" : "Нет", columnPositions[3] + 10, startY + 20);
+
+      // Рисуем границы для строки
+      columnPositions.forEach((pos, index) => {
+        if (index < columnPositions.length - 1) {
+          ctx.strokeRect(
+            pos,
+            startY,
+            columnWidths[index],
+            rowHeight
+          );
+        }
+      });
+    });
+
+    // Генерация изображения из canvas
+    const imgData = canvas.toDataURL("image/png");
+
+    // Генерация PDF с высоким разрешением
+    const pdf = new jsPDF("portrait", "pt", [pageWidth, pageHeight]);
+    pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+    pdf.save(`${userData.surname}_${userData.name}_отчет.pdf`);
   };
+
+
 
   const closeSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
@@ -126,11 +210,11 @@ const ReplenishmentsPage = () => {
   };
 
   const handleShowTopUpPage = () => {
-    setShowTopUpPage(true); // Показать страницу пополнения
+    setShowTopUpPage(true);
   };
 
   const handleBackFromTopUp = () => {
-    setShowTopUpPage(false); // Вернуться обратно
+    setShowTopUpPage(false);
   };
 
   if (showTopUpPage) {
