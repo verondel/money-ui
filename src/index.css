@@ -1,0 +1,59 @@
+/* Установите общий стиль для всего тела */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  /* Совместимо с Material-UI */
+  background-color: #f5f5f5;
+  /* Светлый фон */
+  color: #333;
+  /* Основной цвет текста */
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* Отключаем горизонтальный скролл */
+  height: 100%;
+}
+
+/* Сброс стандартных стилей для списков и т.д. */
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Центрирование текста внутри контейнеров */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+/* Общие стили для кнопок */
+button {
+  cursor: pointer;
+  border: none;
+  padding: 10px;
+}
+
+/* Стили для корневого элемента */
+#root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
