@@ -61,12 +61,15 @@ const MainPage = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography variant="h4" align="center" gutterBottom>
+      {/* <Typography variant="h4" align="center" gutterBottom>
+        Все транзакции
+      </Typography> */}
+      <Typography variant="h4" align="center" gutterBottom sx={{ color: "#6E3FF2", fontWeight: "bold" }}>
         Все транзакции
       </Typography>
 
       {/* Поле для фильтрации */}
-      <Box sx={{ mb: 3, display: "flex", justifyContent: "center", gap: 2 }}>
+      <Box sx={{ mt:3, mb: 3, display: "flex", justifyContent: "center", gap: 2 }}>
         <TextField
           label="Фильтр по клиенту"
           variant="outlined"

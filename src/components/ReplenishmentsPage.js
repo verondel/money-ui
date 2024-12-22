@@ -19,6 +19,7 @@ import {
 import TopUpWalletPage from "./TopUpWalletPage"; // Подключаем страницу пополнения
 import { jsPDF } from "jspdf";
 import axios from "axios";
+import { styled } from "@mui/material/styles";
 
 // Модальные стили
 const modalStyle = {
@@ -33,6 +34,22 @@ const modalStyle = {
   borderRadius: "8px",
   outline: "none",
 };
+
+// Стили для кнопки
+const StyledButton = styled(Button)({
+  marginTop: "20px",
+  backgroundColor: "#6E3FF2",
+  color: "#FFFFFF",
+  borderRadius: "20px",
+  fontSize: "1rem",
+  fontWeight: "600",
+  padding: "10px 20px",
+  transition: "all 0.3s ease",
+  width: "100%", 
+  "&:hover": {
+    backgroundColor: "#5A2FCC",
+  },
+});
 
 const ReplenishmentsPage = () => {
   const [searchInput, setSearchInput] = useState(""); // Поле ввода поиска
@@ -239,7 +256,10 @@ const generatePDF = () => {
     <Box sx={{ p: 4 }}>
       {!userData && (
         <Box sx={{ maxWidth: "500px", margin: "0 auto" }}>
-          <Typography variant="h5" align="center" gutterBottom>
+          {/* <Typography variant="h5" align="center" gutterBottom>
+            Найти пользователя
+          </Typography> */}
+          <Typography variant="h5" align="center" marginBottom='15px' gutterBottom sx={{ color: "#6E3FF2", fontWeight: "bold" }}>
             Найти пользователя
           </Typography>
           <TextField
@@ -249,28 +269,29 @@ const generatePDF = () => {
             onChange={(e) => setSearchInput(e.target.value)}
             variant="outlined"
           />
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2 }}
+          <StyledButton
+            // fullWidth
+            // variant="contained"
+            // color="primary"
+            // sx={{ mt: 2 }}
             onClick={handleSearch}
           >
             Искать
-          </Button>
+          </StyledButton>
         </Box>
       )}
 
       {userData && (
         <Box>
-          <Typography variant="h4" align="center" gutterBottom>
+          <Typography variant="h4" align="center" gutterBottom sx={{ color: "#6E3FF2", fontWeight: "bold" }}>
             {userData.surname} {userData.name} {userData.middle_name}
           </Typography>
           <Typography variant="h6" align="center" gutterBottom>
             Номер кошелька: {userData.wallet}
           </Typography>
 
-          <TableContainer component={Paper} sx={{ mt: 3 }}>
+          {/* <TableContainer component={Paper} sx={{ mt: 3 }}> */}
+          <TableContainer component={Paper} sx={{ borderRadius: "20px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)" }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -311,6 +332,10 @@ const generatePDF = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
+                  sx={{
+                    borderRadius: "20px",
+                    p: 1
+                  }}
                 onClick={generatePDF}
               >
                 Экспортировать в PDF
@@ -321,6 +346,10 @@ const generatePDF = () => {
                 variant="contained"
                 color="secondary"
                 fullWidth
+                sx={{
+                  borderRadius: "20px",
+                  p: 1
+                }}
                 onClick={handleShowTopUpPage}
               >
                 Пополнить кошелёк
