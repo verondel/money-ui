@@ -17,6 +17,8 @@ import {
   Paper,
 } from "@mui/material";
 import TopUpWalletPage from "./TopUpWalletPage"; // Подключаем страницу пополнения
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 import axios from "axios";
 
 const modalStyle = {
@@ -78,6 +80,38 @@ const ReplenishmentsPage = () => {
     }
   };
 
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    
+    // Добавляем заголовок
+    doc.setFontSize(16);
+    doc.setFont("Roboto", "normal");
+    doc.text(`${userData.surname} ${userData.name} ${userData.middle_name}`, 10, 10);
+    doc.text(`Кошелёк: ${userData.wallet}`, 10, 20);
+    
+    console.log('VERA ur userData is', userData)
+    console.log(userData.name)
+    console.log(transactions)
+    
+    // Добавляем таблицу
+    const tableColumns = ["Дата", "Сумма", "Банк", "Подтверждено"];
+    const tableRows = transactions.map((transaction) => [
+      new Date(transaction.date).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" }),
+      transaction.amount,
+      transaction.bankName,
+      transaction.approved ? "Да" : "Нет",
+    ]);
+
+    doc.autoTable({
+      head: [tableColumns],
+      body: tableRows,
+      startY: 30,
+    });
+
+    // Сохраняем PDF
+    doc.save(`${userData.surname}_${userData.name}.pdf`);
+  };
+
   const closeSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
@@ -97,10 +131,6 @@ const ReplenishmentsPage = () => {
 
   const handleBackFromTopUp = () => {
     setShowTopUpPage(false); // Вернуться обратно
-  };
-
-  const exportToPDF = () => {
-    console.log("Экспортировать в PDF");
   };
 
   if (showTopUpPage) {
@@ -164,8 +194,8 @@ const ReplenishmentsPage = () => {
                         hour: "2-digit",
                         minute: "2-digit",
                         second: "2-digit",
-                      })}
-                    </TableCell>
+                      })}                    
+                      </TableCell>
                     <TableCell align="right">{transaction.amount}</TableCell>
                     <TableCell align="center">{transaction.bankName}</TableCell>
                     <TableCell align="center">
@@ -183,7 +213,7 @@ const ReplenishmentsPage = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
-                onClick={exportToPDF}
+                onClick={generatePDF}
               >
                 Экспортировать в PDF
               </Button>
@@ -193,7 +223,7 @@ const ReplenishmentsPage = () => {
                 variant="contained"
                 color="secondary"
                 fullWidth
-                onClick={handleShowTopUpPage} // Обработчик кнопки "Пополнить кошелёк"
+                onClick={handleShowTopUpPage}
               >
                 Пополнить кошелёк
               </Button>
