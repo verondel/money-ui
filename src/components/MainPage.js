@@ -103,7 +103,7 @@ const MainPage = () => {
                   })}
                 </TableCell>
                 <TableCell>
-                  {transaction.client.surname} {transaction.client.name}
+                  {transaction.client.surname} {transaction.client.name} {transaction.client.middle_name}
                 </TableCell>
                 <TableCell>{transaction.bank.name}</TableCell>
                 <TableCell align="right">{transaction.amount}</TableCell>
