@@ -141,6 +141,12 @@ const TopUpWalletPage = ({ user }) => {
       });
       setAmount(""); // Сброс поля суммы
       setSelectedBank(null); // Закрытие модального окна
+
+      // Обновляем данные транзакций и возвращаемся на главную
+      await fetchLimitAndTransactions(); // Обновляем лимиты и транзакции
+      setTimeout(() => {
+        window.location.reload(); // Перезагружаем страницу для отрисовки
+      }, 500);
     } catch (error) {
       console.error("Ошибка пополнения:", error);
       setSnackbar({
