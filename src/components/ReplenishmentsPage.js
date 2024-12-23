@@ -17,6 +17,7 @@ import {
   Paper,
 } from "@mui/material";
 import TopUpWalletPage from "./TopUpWalletPage"; // Подключаем страницу пополнения
+import WithdrawWalletPage from "./WithdrawWalletPage"; // Подключаем страницу пополнения
 import { jsPDF } from "jspdf";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
@@ -57,6 +58,7 @@ const ReplenishmentsPage = () => {
   const [transactions, setTransactions] = useState([]); // Список транзакций пользователя
   const [isModalOpen, setModalOpen] = useState(false); // Модальное окно при отсутствии пользователя
   const [showTopUpPage, setShowTopUpPage] = useState(false); // Показывать страницу пополнения
+  const [showWithdrawPage, setShowWithdrawPage] = useState(false); // Показывать страницу снятия
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -248,8 +250,15 @@ const generatePDF = () => {
     setShowTopUpPage(false);
   };
 
+  const handleShowWithdrawPage = () => {
+    setShowWithdrawPage(true);
+  };
+
   if (showTopUpPage) {
     return <TopUpWalletPage user={userData} onBack={handleBackFromTopUp} />;
+  }
+  if (showWithdrawPage) {
+    return <WithdrawWalletPage user={userData} onBack={handleBackFromTopUp} />;
   }
 
   return (
@@ -330,20 +339,6 @@ const generatePDF = () => {
             <Grid item xs={12} sm={6}>
               <Button
                 variant="contained"
-                color="primary"
-                fullWidth
-                  sx={{
-                    borderRadius: "20px",
-                    p: 1
-                  }}
-                onClick={generatePDF}
-              >
-                Экспортировать в PDF
-              </Button>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Button
-                variant="contained"
                 color="secondary"
                 fullWidth
                 sx={{
@@ -355,7 +350,35 @@ const generatePDF = () => {
                 Пополнить кошелёк
               </Button>
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <Button
+                variant="contained"
+                color="secondary"
+                fullWidth
+                sx={{
+                  borderRadius: "20px",
+                  p: 1
+                }}
+                onClick={handleShowWithdrawPage}
+              >
+                Снять с кошелька
+              </Button>
+            </Grid>
           </Grid>
+          <Grid item xs={12} sm={6} mt={3}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                    sx={{
+                      borderRadius: "20px",
+                      p: 1
+                    }}
+                  onClick={generatePDF}
+                >
+                  Экспортировать в PDF
+                </Button>
+            </Grid>
         </Box>
       )}
 
