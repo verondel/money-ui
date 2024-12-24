@@ -33,6 +33,8 @@ const ChartsPage = () => {
   const [data, setData] = useState({ income: {}, expense: {} });
   const [fio, setFio] = useState('');
   const [balanceChartData, setBalanceChartData] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,11 +71,19 @@ const ChartsPage = () => {
 
   const handleFetchBalanceData = async () => {
     try {
+      const params = { fio };
+
+      // Добавляем даты, если они указаны
+      if (startDate) {
+        params.startDate = startDate;
+      }
+      if (endDate) {
+        params.endDate = endDate;
+      }
+
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/balance-history`,
-        {
-          params: { fio },
-        }
+        { params }
       );
 
       const { transactions } = response.data;
@@ -223,6 +233,22 @@ const ChartsPage = () => {
             value={fio}
             onChange={(e) => setFio(e.target.value)}
             sx={{ width: '300px' }}
+          />
+          <TextField
+            label="Дата начала"
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            sx={{ width: '200px' }}
+          />
+          <TextField
+            label="Дата конца"
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            sx={{ width: '200px' }}
           />
           <Button
             variant="contained"
