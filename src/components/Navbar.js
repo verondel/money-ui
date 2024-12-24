@@ -3,6 +3,7 @@ import { AppBar, Tabs, Tab, Box, Typography, Toolbar } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import ClientsPage from "./ClientsPage";
 import ReplenishmentsPage from "./ReplenishmentsPage";
+import ChartPage from "./ChartPage";
 import MainPage from "./MainPage";
 
 // Стили для вкладок с закруглёнными углами
@@ -65,7 +66,7 @@ const Navbar = () => {
               <StyledTab label="Главная" />
               <StyledTab label="Клиенты" />
               <StyledTab label="Пополнения" />
-              <StyledTab label="Переводы" />
+              <StyledTab label="Графики" />
             </Tabs>
           </Box>
 
@@ -79,7 +80,8 @@ const Navbar = () => {
         {tabIndex === 0 && <MainPage />}
         {tabIndex === 1 && <ClientsPage />}
         {tabIndex === 2 && <ReplenishmentsPage />}
-        {tabIndex === 3 && <Typography variant="h5" align="center">Переводы будут здесь.</Typography>}
+        {tabIndex === 3 && <ChartPage />}
+        {/* {tabIndex === 3 && <Typography variant="h5" align="center">Переводы будут здесь.</Typography>} */}
       </Box>
     </Box>
   );

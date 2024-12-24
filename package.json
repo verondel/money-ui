@@ -7,10 +7,12 @@
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.2.0",
     "axios": "^1.7.9",
+    "chart.js": "^4.4.7",
     "cra-template-typescript": "1.2.0",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "react": "^19.0.0",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^19.0.0",
     "react-scripts": "5.0.1"
   },
