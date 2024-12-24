@@ -6,6 +6,8 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.2.0",
+    "ajv": "^6.12.6",
+    "ajv-keywords": "^3.5.2",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "chartjs-adapter-date-fns": "^3.0.0",
@@ -41,5 +43,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
   }
 }

@@ -10,6 +10,8 @@ import {
   CardContent,
   Snackbar,
   Alert,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
@@ -37,8 +39,6 @@ const StyledButton = styled(Button)({
   },
 });
 
-
-
 const theme = createTheme({
   typography: {
     fontFamily: "Montserrat, sans-serif",
@@ -60,6 +60,8 @@ const AddUserPage = () => {
     severity: "success",
     wallet: "",
   });
+
+  const [isConsentGiven, setIsConsentGiven] = useState(false);
 
   const validateForm = () => {
     const { name, surname, birth, phone } = formData;
@@ -107,6 +109,16 @@ const AddUserPage = () => {
       return false;
     }
 
+    if (!isConsentGiven) {
+      setSnackbar({
+        open: true,
+        message: "Вы должны дать согласие на обработку персональных данных.",
+        severity: "error",
+        wallet: "",
+      });
+      return false;
+    }
+
     return true;
   };
 
@@ -120,6 +132,76 @@ const AddUserPage = () => {
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handleConsentChange = (e) => {
+    setIsConsentGiven(e.target.checked);
+  };
+
+  const generateConsentCanvas = () => {
+    const { name, surname, middle_name } = formData;
+    const fullName = `${surname} ${name} ${middle_name}`;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 600;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "16px Arial";
+    ctx.fillText("Согласие на обработку персональных данных", 50, 50);
+
+    const text = `Я, ${fullName}, субъект персональных данных, 
+в соответствии с Федеральным законом № 152-ФЗ 
+«О персональных данных» свободно, в своей воле и в своем интересе, а также 
+подтверждая свою дееспособность, ДАЮ СОГЛАСИЕ обществу с ограниченной 
+ответственностью небанковской кредитной организации «Мани» (ИНН 7750005725,
+ОГРН 1127711000031, город Москва, Садовническая улица, дом 82, строение 2, 
+https://money.ru/) (далее — НКО) на обработку моих персональных данных 
+на следующих условиях:
+
+Цель обработки: рассмотрение вопроса о соответствии имеющимся вакансиям НКО, 
+проведение собеседований.
+Обрабатываемые персональные данные относятся к категории «иные».
+
+Я уведомлен, что НКО не осуществляет обработку специальных категорий 
+персональных данных и биометрических данных.
+
+Состав обрабатываемых персональных данных: фамилия, имя, адрес электронной 
+почты, номер контактного телефона, а также в случае самостоятельного предоставления 
+субъектом данных: персональные данные, содержащиеся в резюме и/или портфолио 
+(в том числе ссылки на социальные сети, отчество, дата рождения, гражданство, 
+сведения о трудовой деятельности) и иные самостоятельно предоставленные данные.
+
+Действия с персональными данными и способы их обработки: автоматизированная и 
+неавтоматизированная (смешанная) обработка с совершением НКО следующих действий: 
+сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), 
+извлечение, использование, удаление, уничтожение персональных данных.
+
+Сроки обработки: согласие действует до достижения цели обработки персональных 
+данных или до момента отзыва согласия.
+
+Передача третьим лицам: нет.
+Отзыв согласия: Я осведомлен, что согласие может быть отозвано в любой момент 
+путем направления письменного заявления по адресу, указанному в начале текста настоящего 
+Согласия, или представителю по адресу dpo@money.ru.`;
+
+    const lineHeight = 20;
+    const lines = text.split("\n");
+    let y = 80;
+
+    for (let line of lines) {
+      ctx.fillText(line, 50, y);
+      y += lineHeight;
+    }
+
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "consent.png";
+    link.click();
   };
 
   const handleSubmit = async (e) => {
@@ -147,6 +229,7 @@ const AddUserPage = () => {
         birth: "",
         phone: "",
       });
+      setIsConsentGiven(false);
     } catch (error) {
       console.error("Error adding user:", error);
       setSnackbar({
@@ -224,6 +307,20 @@ const AddUserPage = () => {
                   required
                 />
               </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={<Checkbox checked={isConsentGiven} onChange={handleConsentChange} />}
+                  label={
+                    <Typography
+                      variant="body2"
+                      sx={{ cursor: "pointer", textDecoration: "underline" }}
+                      onClick={generateConsentCanvas}
+                    >
+                      Согласие на обработку персональных данных
+                    </Typography>
+                  }
+                />
+              </Grid>
               <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                 <StyledButton type="submit">Добавить клиента</StyledButton>
               </Grid>
@@ -232,21 +329,20 @@ const AddUserPage = () => {
         </CardContent>
       </StyledCard>
 
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={10000}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={10000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+      >
+        <Alert
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          severity={snackbar.severity}
+          sx={{ fontSize: "1.2rem", width: "100%" }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ fontSize: "1.2rem", width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      {/* </Container> */}
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
