@@ -102,21 +102,152 @@ const MainPage = () => {
     setSelectedTransaction(null);
   };
 
-  const handleDownload = () => {
-    if (!selectedTransaction) return;
+const handleDownload = async () => {
+  if (!selectedTransaction) return;
 
-    const doc = new jsPDF();
-    const { client, bank, amount, date } = selectedTransaction;
+  const { client, bank, amount, date } = selectedTransaction;
 
-    // Генерация содержимого PDF
-    doc.html(document.querySelector("#transaction-check"), {
-      callback: function (doc) {
-        doc.save("payment-details.pdf");
-      },
-    });
+  // Получение ID клиента по ФИО
+  let clientId = null;
+  try {
+    const clientResponse = await axios.get(
+      `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/client-id`,
+      {
+        params: {
+          name: client.name,
+          surname: client.surname,
+          middle_name: client.middle_name,
+        },
+      }
+    );
+    clientId = clientResponse.data.clientId;
+    console.log(clientId)
+  } catch (error) {
+    console.error("Ошибка получения ID клиента:", error);
+    return alert("Не удалось получить данные клиента. Попробуйте позже.");
+  }
+  console.log(clientId)
+  // Получение остатка с сервера
+  let userId = clientId;
+  let remainingBalance = 0;
+  try {
+    const balanceResponse = await axios.get(
+      `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/balance`,
+      {
+        params: { userId },
+      }
+    );
+    remainingBalance = balanceResponse.data.balance;
+  } catch (error) {
+    console.error("Ошибка получения остатка:", error);
+    remainingBalance = "Ошибка загрузки";
+  }
 
-    handleCloseModal();
+  // Получение номера телефона клиента с сервера
+  let clientNumber = "";
+  try {
+    const clientNumberResponse = await axios.get(
+      `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/client-number`,
+      {
+        params: { clientId },
+      }
+    );
+    clientNumber = clientNumberResponse.data.phone || client.phone;
+  } catch (error) {
+    console.error("Ошибка получения номера клиента:", error);
+    clientNumber = "Ошибка загрузки";
+  }
+
+  // Генератор случайного номера платежа
+  const generatePaymentNumber = () => {
+    return `B${Math.random().toString().slice(2, 10)}${Math.random().toString().slice(2, 16)}`;
   };
+
+  const paymentNumber = generatePaymentNumber();
+
+  // Создаем Canvas
+  const canvas = document.createElement("canvas");
+  canvas.width = 400; // Уменьшили ширину
+  canvas.height = 600; // Уменьшили высоту
+  const ctx = canvas.getContext("2d");
+
+  // Фон и базовые стили
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "14px Arial";
+  ctx.fillStyle = "#000000";
+
+  // Номер кошелька
+  ctx.fillText("Номер кошелька", 20, 40);
+  ctx.font = "16px Arial";
+  ctx.fillText(client.wallet, 20, 60);
+
+  // Разделитель
+  ctx.strokeStyle = "#cccccc";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(20, 80);
+  ctx.lineTo(380, 80);
+  ctx.stroke();
+
+  // Дата и время
+  ctx.font = "14px Arial";
+  ctx.fillText("Дата и время:", 20, 100);
+  ctx.fillText(new Date(date).toLocaleString("ru-RU"), 20, 120);
+
+  // ФИО клиента
+  ctx.font = "18px Arial bold";
+  ctx.fillText(
+    `${client.surname} ${client.name} ${client.middle_name.charAt(0)}.`,
+    20,
+    160
+  );
+
+  // Сумма
+  ctx.font = "25px Arial bold";
+  ctx.fillText(`${amount} ₽`, 20, 200);
+
+  // Остаток
+  ctx.font = "14px Arial";
+  ctx.fillText("Остаток:", 300, 190);
+  ctx.font = "16px Arial";
+  ctx.fillText(`${remainingBalance} ₽`, 300, 210);
+
+  // Разделитель
+  ctx.strokeStyle = "#cccccc";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(20, 240);
+  ctx.lineTo(380, 240);
+  ctx.stroke();
+
+  // Детали платежа
+  ctx.font = "16px Arial";
+  ctx.fillText("Детали платежа", 20, 270);
+  ctx.font = "14px Arial";
+  ctx.fillText(`Телефон: ${clientNumber}`, 20, 300);
+  ctx.fillText(`Банк: ${bank.name}`, 20, 330);
+
+  // Назначение платежа
+  ctx.font = "16px Arial";
+  ctx.fillText("Назначение платежа", 20, 370);
+  ctx.font = "14px Arial";
+  ctx.fillText(`Система Быстрых Платежей`, 20, 400);
+  ctx.fillText(`Пополнение счета в ${bank.name}`, 20, 420);
+  ctx.fillText(`Платеж № ${paymentNumber}`, 20, 440);
+
+  // Конвертация Canvas в изображение и добавление в PDF
+  const imgData = canvas.toDataURL("image/png");
+  const doc = new jsPDF({
+    unit: "px",
+    format: "a4",
+  });
+
+  // Смещаем чек влево и уменьшаем его на странице
+  doc.addImage(imgData, "PNG", 40, 20, 300, 450);
+  doc.save("payment-details.pdf");
+  handleCloseModal();
+};
 
   return (
     <Box sx={{ p: 4 }}>
