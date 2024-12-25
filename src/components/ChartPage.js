@@ -32,9 +32,44 @@ ChartJS.register(
 const ChartsPage = () => {
   const [data, setData] = useState({ income: {}, expense: {} });
   const [fio, setFio] = useState('');
+  const [filterInput, setFilterInput] = useState('');
   const [balanceChartData, setBalanceChartData] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  const fetchFilteredData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/transactions-summary`,
+        {
+          params: {
+            filter: filterInput, // Передаем список ФИО через запятую
+          },
+        }
+      );
+
+      const formattedData = response.data.reduce(
+        (acc, curr) => {
+          acc.income.labels.push(curr.userName);
+          acc.income.data.push(curr.income);
+
+          acc.expense.labels.push(curr.userName);
+          acc.expense.data.push(curr.expense);
+
+          return acc;
+        },
+        {
+          income: { labels: [], data: [] },
+          expense: { labels: [], data: [] },
+        }
+      );
+
+      setData(formattedData);
+    } catch (error) {
+      console.error('Ошибка загрузки данных для графиков:', error);
+    }
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,7 +78,6 @@ const ChartsPage = () => {
           `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/transactions-summary`
         );
 
-        // Ожидаем данные в формате: [{ userId, userName, income, expense }]
         const formattedData = response.data.reduce(
           (acc, curr) => {
             acc.income.labels.push(curr.userName);
@@ -73,7 +107,6 @@ const ChartsPage = () => {
     try {
       const params = { fio };
 
-      // Добавляем даты, если они указаны
       if (startDate) {
         params.startDate = startDate;
       }
@@ -88,7 +121,6 @@ const ChartsPage = () => {
 
       const { transactions } = response.data;
 
-      // Формируем данные для графика
       const labels = transactions.map((txn) => new Date(txn.date));
       const data = transactions.map((txn) => txn.balance);
 
@@ -103,7 +135,7 @@ const ChartsPage = () => {
             fill: true,
             pointRadius: 5,
             pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-            tension: 0.4, // Сглаживание линии
+            tension: 0.4,
           },
         ],
       });
@@ -156,39 +188,8 @@ const ChartsPage = () => {
     },
   };
 
-  const balanceChartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => `Баланс: ${context.raw} ₽`,
-        },
-      },
-    },
-    scales: {
-      x: {
-        type: 'time',
-        time: {
-          unit: 'day',
-          tooltipFormat: 'dd.MM.yyyy HH:mm',
-        },
-        title: {
-          display: true,
-          text: 'Дата',
-        },
-      },
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Остаток, ₽',
-        },
-      },
-    },
+  const handleApplyFilter = () => {
+    fetchFilteredData();
   };
 
   return (
@@ -201,6 +202,23 @@ const ChartsPage = () => {
       >
         Графики приходов и расходов
       </Typography>
+
+    <Box sx={{ mt: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+      <TextField
+        label="Фильтр по фамилиям (через запятую)"
+        variant="outlined"
+        fullWidth
+        value={filterInput}
+        onChange={(e) => setFilterInput(e.target.value)}
+      />
+      <Button
+        variant="contained"
+        onClick={handleApplyFilter}
+        sx={{ backgroundColor: '#6E3FF2', height: '56px' }} // Высота кнопки под размер TextField
+      >
+        Применить фильтр
+      </Button>
+    </Box>
 
       <Box sx={{ mt: 4 }}>
         <Typography variant="h6" align="center" gutterBottom>
@@ -261,7 +279,7 @@ const ChartsPage = () => {
 
         <Box sx={{ mt: 4 }}>
           {balanceChartData ? (
-            <Line data={balanceChartData} options={balanceChartOptions} />
+            <Line data={balanceChartData} options={chartOptions} />
           ) : (
             <Typography align="center" sx={{ color: '#888' }}>
               Введите ФИО и нажмите кнопку, чтобы построить график.
